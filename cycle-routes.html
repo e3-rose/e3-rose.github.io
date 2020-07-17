@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>
+        Bristol Cycle Network
+    </title>
+
+    <style>
+        body {
+            background-color: white;
+            font-family: Arial;
+        }
+
+        .hero-image {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url("headerimage.jpg");
+            height: 50%;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            position: relative;
+            padding: 200px;
+        }
+
+        .hero-text {
+            text-align: center;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+        }
+
+        .topnav {
+            overflow: hidden;
+            background-color: #339966;
+            opacity: 0.4px;
+            padding: 10px;
+
+        }
+
+        .topnav a {
+            float: left;
+            display: block;
+            padding: 4px 20px;
+            font-size: 17px;
+            text-decoration: none;
+            color: white;
+            border-bottom: 1px;
+        }
+
+        .topnav a:hover {
+            border-bottom: 3px solid white;
+        }
+
+        .topnav a.active {
+            border-bottom: 3px solid white;
+        }
+
+        .topnav input[type=text] {
+            float: right;
+            padding: 4px;
+            border: 1;
+            font-size: 17px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 50px;
+            letter-spacing: 0.5px;
+            text-shadow: 0 0 10px black;
+
+        }
+
+        h3 {
+            text-align: center;
+            font-size: 25px;
+            letter-spacing: 2px;
+        }
+
+        #p01 {
+            text-align: left;
+            font-size: 14px;
+            letter-spacing: normal;
+        }
+
+        .bristol,
+        p {
+            text-align: center;
+
+        }
+
+        table {
+            padding: 1px;
+            border: 1px solid;
+            width: 70%;
+            background-color: white;
+            color: black;
+            border-collapse: collapse;
+        }
+
+        table td,
+        table th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        table th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #339966;
+            color: white;
+            border: 1px solid #ddd;
+        }
+
+        table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        table tr:hover {
+            background-color: #ddd;
+        }
+
+        #text {
+            padding: 10px;
+            Font-size: 15px;
+            border: 1px solid;
+            margin-bottom: 10px;
+            margin-top: 10px;
+            display: inline-block;
+
+        }
+
+        .custom-select {
+            padding: 20px 10px;
+            margin-top: 2px;
+            border: 1px black;
+        }
+
+        footer {
+            display: block;
+            background-color: #339966;
+            padding: 1px;
+            margin-top: 40px;
+            color: white;
+            text-align: right;
+        }
+    </style>
+
+<script>
+    const url = "https://opendata.bristol.gov.uk/api/records/1.0/search/?dataset=cycle-network&rows=50";
+
+    function search(input) {
+        var table = document.getElementById("myTable");
+        for (var i = 0; i < table.rows.length; i++) {
+            var data = table.rows[i].cells[0].innerText;
+            if (data.includes(input.value)) {
+                console.log(data);
+                table.rows[i].focus();
+                break;
+            }
+        }
+    }
+
+    async function main() {
+
+        var response = await fetch(url);
+        var json = await response.json();
+        var table = document.getElementById("myTable");
+
+
+        for (var i = 0; i < json.records.length; i++) {
+            // var row = document.createElement("tr");
+            var fields = json.records[i].fields;
+            table.insertAdjacentHTML('afterbegin',
+                `<tr tabindex=-1 id="${json.records[i].recordid}">\
+                    <td>${fields.route_name}</td>\
+                    <td>${fields.quality}</td>\
+                    <td>${fields.b_inftype}</td>\
+                </tr>`);
+
+            // table.appendChild(row);
+            // var name = document.createElement("td");
+            // row.appendChild(name);
+            // row["tabindex"] = -1;
+            // name.innerText = json.records[i].fields.route_name;
+
+            // var quality = document.createElement("td");
+            // row.appendChild(quality);
+            // quality.innerText = json.records[i].fields.quality;
+
+            // var b_inftype = document.createElement("td");
+            // row.appendChild(b_inftype);
+            // b_inftype.innerText = json.records[i].fields.b_inftype;
+
+            //<!-- document.write(JSON.stringify(json.records[i].fields.route_name+"<br>"));  -->
+            //<!-- document.write(JSON.stringify(json.records[i].fields.quality+"<br>")); -->
+            //<!-- document.write(JSON.stringify(json.records[i].fields.b_inftype+"<br>"));  -->
+            //<!-- document.write("<br><br>");  -->
+        }
+    }
+
+    main();
+
+</script>
+</head>
+
+<body>
+    <div class="hero-image">
+        <div class="hero-text">
+            <h1>Bristol Cycle Network</h1>
+            <h3>plan your routes daily</h3>
+        </div>
+    </div>
+
+
+    <div class="topnav">
+        <a href="cycle-home.html"> Home </a>
+        <a class="active" href="cycle-routes.html"> Routes </a>
+        <a href="cycle-map.html"> Map </a>
+        <a href="Contact-us.html"> Contact Us </a>
+        <input type="text" placeholder="Search..">
+    </div>
+
+    <div class="bristol">
+        <h2> Bristol Cycle Routes</h2>
+        <p>Don't know all the routes available to you? Search here to find a specific route in the Bristol area.</p>
+    </div>
+
+    <input type id="text" placeholder="Search Routes" onchange="search(this)">
+    
+    <div class="custom-select">
+        <select>
+            <option value="" disabled="disabled" selected="selected"  > Select Area</option>
+            <option value="Bradley Stoke"> Bradley Stoke</option>
+            <option value="Gloucester Road"> Gloucester Road</option>
+            <option value="Patchway"> Patchway</option>
+            <option value="Filton"> Filton</option>
+            <option value="Frenchay"> Frenchay</option>
+        </select>
+    </div>
+
+	<table>
+		<thead>
+			<th>Route Name</th>
+			<th>Quality</th>
+			<th>Type of Route</th>
+		</thead>
+		<tbody id="myTable"></tbody>
+	</table>
+
+    <footer>
+        <p id="p01"> Copyright Bristol Cycle Network 2019</p>
+        <p id="p01"> Contact Us: <a href="mailto:info@bristolcyclenetwork.com">info@bristolcyclenetwork.com</a></p>
+    </footer>
+
+</body>
+
+</html>

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"></script>
+        <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"></script>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" />
+        <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+        <title>Bristol Cycle Network</title>
+
+        <style>
+            body {
+                background-color: white;
+                font-family: Arial;
+            }
+            .hero-image {
+                background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url("headerimage.jpg");
+                height: 50%;
+                background-position: center;
+                background-repeat: no-repeat;
+                background-size: cover;
+                position: relative;
+                padding: 200px;
+            }
+            .hero-text {
+                text-align: center;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                color: white;
+            }
+            h1 {
+                text-align: center;
+                font-size: 50px;
+                letter-spacing: 0.5px;
+                text-shadow: 0 0 10px black;
+            }
+            h3 {
+                text-align: center;
+                font-size: 25px;
+                letter-spacing: 2px;
+            }
+            .topnav {
+                overflow: hidden;
+                background-color: #339966;
+                opacity: 0.4px;
+                padding: 10px;
+            }
+            .topnav a {
+                float: left;
+                display: block;
+                padding: 4px 20px;
+                font-size: 17px;
+                text-decoration: none;
+                color: white;
+                border-bottom: 1px;
+            }
+            .topnav a:hover {
+                border-bottom: 3px solid white;
+            }
+            .topnav a.active {
+                border-bottom: 3px solid white;
+            }
+            .topnav input[type=text] {
+                float: right;
+                padding: 4px;
+                border: 1;
+                font-size: 17px;
+            }
+            .Map {
+                text-align: center;
+            }
+            #mapid {
+                height: 500px;
+                width: auto;
+            }
+            button {
+                background-color: #339966;
+                color: white;
+                padding: 7px 7px;
+                text-align: center;
+                text-decoration: none;
+                font-size: 16px;
+                cursor: pointer;
+                margin: 5px;
+                border-radius: 4px;
+            }
+            input[type=checkbox] {
+                margin: 5px;
+                cursor: pointer;
+            }
+            input[type=submit] {
+                background-color: #339966;
+                border: none;
+                color: white;
+                padding: 7px 10px;
+                text-decoration: none;
+                margin: 10px 5px;
+                cursor: pointer;
+                border-radius: 4px;
+            }
+            .mapoptions {
+                border-radius: 5px;
+                background-color: #ffffff;
+                padding: 20px;
+                margin: 5px;
+            }
+            .mapoptions input[type=text],
+            select {
+                width: 100%;
+                padding: 12px 20px;
+                margin: 8px 0;
+                display: inline-block;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                box-sizing: border-box;
+            }
+            #route {
+                background-color:#339966;
+                color:white;
+            }
+            .w3-row {
+                padding: 1px;
+                border: none;
+                width: 100%;
+                background-color: white;
+                color: black;
+                border-collapse: collapse;
+            }
+            footer {
+                display: block;
+                background-color: #339966;
+                padding: 1px;
+                color: white;
+                font-size: 14px;
+            }
+        </style>
+    </head>
+
+    <script>
+        const URL = "https://opendata.bristol.gov.uk/api/records/1.0/search/?dataset=cycle-network&rows=20";
+        const MAP_ZOOM = 13;
+
+        var lat = 51.4545, lon = -2.5879;
+        var map;
+        var toolsLayer;
+
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function (p) {
+                    var lat = p.coords.latitude;
+                    var lon = p.coords.longitude;
+
+                    map.setView([lat, lon]);
+                });
+            }
+            else alert("Geolocation is not supported by this browser.");
+        }
+
+
+        /** Function builds map and places markers according to the lon and lat **/
+        function buildMap(map, records) {
+            for (i in records) {
+                var fields = records[i].fields;
+                var lat = fields.geo_point_2d[0];
+                var lon = fields.geo_point_2d[1];
+                var id = records[i].recordid;
+                var marker = L.marker([lat, lon], { "title": fields.route_name, "id": id });
+                marker.addTo(map);
+                /** Show the 'route_name' and 'quality' for each maker in the info pop-up box **/
+                if (fields.route_name != null) {
+                    marker.bindPopup("<b>" + fields.route_name + "</b>" + "<br>" + fields.quality)
+                }
+                /** If 'route_name' is null, display 'Undefined' within the info pop-up box **/
+                else {
+                    marker.bindPopup("Undefined");
+                }
+                /** When a marker has been selected, focus on the associated information found
+                 *  in the grid structure.
+                 * **/
+                marker.on('click', function () {
+                    document.getElementById(`${this.options.id}`).focus();
+                });
+            }
+        }
+
+        /** (function builds table which is then linked to the click of the marker) **/
+        function buildGrid(id, records) {
+            var grid = document.getElementById(id);
+            
+            grid.innerHTML = "";
+            for (var i = 0; i < records.length; i++) {
+                var fields = records[i].fields;
+
+                grid.insertAdjacentHTML('afterbegin',
+                    `<div class='w3-row' tabindex=-1 id='${records[i].recordid}'>\
+                        <div class='w3-col m2 w3-border-top w3-border-white' id="route"><b> ${fields.route_name}</b></div>\
+                        <div class='w3-col m5 w3-light-grey w3-border-top w3-border-white' id="quality"> ${fields.quality}</div>\
+                        <div class='w3-col m5 w3-light-grey w3-border-top w3-border-white' id="prog"> ${fields.prog_statu}</div>\
+                    </div>`);
+            }
+        }
+
+        /** (async function used to return getlocation build map and build grid) **/
+        async function main() {
+            var response = await fetch(URL);
+            var json = await response.json();
+
+            map = L.map('mapid');
+            map.setView([lat, lon], MAP_ZOOM);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            buildMap(map, json.records);
+            buildGrid("myGrid", json.records);
+
+        }
+    </script>
+
+    <body>
+        <div class="hero-image">
+            <div class="hero-text">
+                <h1>Bristol Cycle Network</h1>
+                <h3>plan your routes daily</h3>
+            </div>
+        </div>
+
+        <div class="topnav">
+            <a href="cycle-home.html"> Home </a>
+            <a href="cycle-routes.html"> Routes </a>
+            <a class="active" href="cycle-map.html"> Map </a>
+            <a href="Contact-us.html"> Contact Us </a>
+            <input type="text" placeholder="Search">
+        </div>
+
+        <div class="Map">
+            <h2>Map Your Route</h2>
+        </div>
+
+        <button onclick="getLocation()">Find your Location</button>
+
+        <section>
+            <div id="mapid"></div>
+            <script>
+                main();
+            </script>
+        </section>
+
+        <div class="mapoptions">
+            <form>
+                <label for="start">Starting Point:</label>
+                <input type="text" id="start" name="start" placeholder="Search Starting Point...">
+                <label for="destination">Destination:</label>
+                <input type="text" id="destination" name="destination" placeholder="Search Destination...">
+                <input type="submit" value="Show Routes">
+            </form>
+
+            <p>Select the type of route you would most like to travel:</p>
+
+            <form action="/action_page.php">
+                <input type="checkbox" name="Quiet Route" value="Quiet"> Quiet<br>
+                <input type="checkbox" name="Short Route" value="Short"> Short<br>
+                <input type="checkbox" name="Safe Route" value="Safe" checked> Safe with Lighting<br>
+            </form>
+        </div class="mapoptions">
+
+        <br>
+
+        <div id='myGrid'></div>
+        <script>
+            main();
+        </script>
+
+        <br>
+
+        <footer>
+            <p> Copyright Bristol Cycle Network 2019</p>
+            <p> Contact us: <a href="mailto:info@bristolcyclenetwork.com">info@bristolcyclenetwork.com</a></p>
+        </footer>
+    </body>
+</html>
