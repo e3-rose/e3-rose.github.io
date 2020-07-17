@@ -1,0 +1,117 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+from sklearn import preprocessing
+from sklearn.preprocessing import MinMaxScaler,PolynomialFeatures
+from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import Ridge
+from sklearn.linear_model import Lasso
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+from sklearn.metrics import r2_score
+
+
+df = pd.read_csv('Downloads/benign-IoT.csv')
+print (df.head)
+df = df.dropna()
+
+X = df[['H_L3_mean', 'H_L1_mean', 'H_L0.1_mean', 'H_L0.01_mean', 'HH_L5_mean', 'HH_L3_mean', 'HH_L1_mean', 'HH_L0.1_mean', 'HH_L0.01_mean', 'HH_jit_L5_mean', 'HH_jit_L3_mean', 'HH_jit_L1_mean', 'HH_jit_L0.1_mean', 'HH_jit_L0.01_mean', 'HpHp_L5_mean', 'HpHp_L3_mean', 'HpHp_L1_mean', 'HpHp_L0.1_mean', 'HpHp_L0.01_mean']]
+y = df['H_L5_mean']
+
+#Polynomial Features used as there is only one predictable variable
+X = MinMaxScaler().fit_transform(df)
+X = PolynomialFeatures(degree=2, include_bias=False).fit_transform(X) 
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+
+lr = LinearRegression()
+lr.fit(X_train, y_train)
+
+print ('Regression Score')
+reg = LinearRegression().fit(X, y)
+print (reg.score(X, y))
+print()
+print ('Training Regression Score')
+print(LinearRegression().fit(X_train, y_train).score(X,y))
+print()
+
+print('Linear Regression Root Mean square Error')
+pred_train_lr= lr.predict(X_train)
+print('Training Data:')
+print(np.sqrt(mean_squared_error(y_train,pred_train_lr)))
+print(r2_score(y_train, pred_train_lr))
+print()
+print('Testing Data')
+pred_test_lr= lr.predict(X_test)
+print(np.sqrt(mean_squared_error(y_test,pred_test_lr))) 
+print(r2_score(y_test, pred_test_lr))
+print()
+
+ridge = Ridge(alpha=1.0).fit(X_train, y_train)
+print("Ridge Training set score: {:.2f}".format(ridge.score(X_train, y_train)))
+print("Ridge Test set score: {:.2f}".format(ridge.score(X_test, y_test)))
+print()
+
+lasso = Lasso(alpha=0.0001).fit(X_train, y_train)
+print("Lasso Training set score: {:.2f}".format(lasso.score(X_train, y_train)))
+print("Lasso Test set score: {:.2f}".format(lasso.score(X_test, y_test)))
+
+ridge = Ridge(alpha=1.0).fit(X_train, y_train)
+ridge10 = Ridge(alpha=10).fit(X_train, y_train)
+ridge01 = Ridge(alpha=0.1).fit(X_train, y_train)
+plt.plot(ridge.coef_,'s', label="Ridge alpha=1")
+plt.plot(ridge10.coef_,'^', label="Ridge alpha=10")
+plt.plot(ridge01.coef_,'v', label="Ridge alpha=0.1")
+
+lasso = Lasso(alpha=1.0).fit(X_train, y_train)
+lasso10 = Lasso(alpha=10).fit(X_train,y_train)
+lasso01 = Lasso(alpha=0.1).fit(X_train,y_train)
+plt.plot(lasso.coef_,'s', label="Lasso alpha=1")
+plt.plot(lasso10.coef_,'^', label="Lasso alpha=10")
+plt.plot(lasso01.coef_,'v', label="Lasso alpha=0.1")
+
+print()
+
+print("Linear Regresion")
+plt.plot(lr.coef_, 'o', label="LinearRegression")
+plt.xlabel("Coefficient Index")
+plt.ylabel("Coefficient Magnitude")
+xlims = plt.xlim()
+plt.hlines(0, xlims[0], xlims[1])
+plt.xlim(xlims)
+plt.ylim(-25, 25)
+plt.legend()
+plt.show()
+
+print ()
+
+print ("Ridge")
+plt.plot(ridge.coef_, 's', label="Ridge1")
+plt.plot(ridge10.coef_, '^', label="Ridge10")
+plt.plot(ridge01.coef_, 'v', label="Ridge0.1")
+plt.xlabel("Coefficient Index")
+plt.ylabel("Coefficient Magnitude")
+xlims = plt.xlim()
+plt.hlines(0, xlims[0], xlims[1])
+plt.xlim(xlims)
+plt.ylim(-25, 25)
+plt.legend()
+plt.show()
+
+print()
+
+print("Lasso")
+plt.plot(lasso.coef_, 's', label="Lasso1")
+plt.plot(lasso10.coef_, '^', label="Lasso10")
+plt.plot(lasso01.coef_, 'v', label="Lasso0.1")
+plt.xlabel("Coefficient Index")
+plt.ylabel("Coefficient Magnitude")
+xlims = plt.xlim()
+plt.hlines(0, xlims[0], xlims[1])
+plt.xlim(xlims)
+plt.ylim(-25, 25)
+plt.legend()
+plt.show()
+
+
